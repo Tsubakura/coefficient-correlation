@@ -1,22 +1,97 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+	<div id="app">
+    <img src="./assets/logo.png" height="15%" width="15%">
+    <br />
+    <text-reader @load="parseCSV($event)"></text-reader>
+    <br>
+    <table v-if="columns.length > 0 && loaded" class="table is-bordered" align="center">
+      <thead>
+        <tr>
+          <th></th>
+          <th v-for="(entry) in columns" :key="entry">{{entry}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(entryX) in columns" :key="entryX">
+          <th>{{entryX}}</th>
+          <td v-for="(entryY) in columns" :key="entryY" :style="{ background: gradientRedYellowGreen(calculate(entryX, entryY)) }">{{calculate(entryX, entryY)}}</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th></th>
+          <th v-for="(entry) in columns" :key="entry">{{entry}}</th>
+        </tr>
+      </tfoot>
+    </table>
+	</div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import TextReader from "./TextReader";
+const papa = require('papaparse')
+const correlation = require('node-correlation')
+const {getGradients} = require('color-gradients')
+getGradients({values: [-1, 0, 1]})
 
 export default {
-  name: 'app',
+  name: "app",
   components: {
-    HelloWorld
+    TextReader
+  },
+  data: function() {
+    return {
+      columns: [],
+      data: {},
+      loaded: false
+    }
+  },
+  methods: {
+    parseCSV(value){
+      this.loaded = false;
+      let dataset = papa.parse(value, {skipEmptyLines: true});
+      if(dataset.errors.length > 0){
+        console.log("MY BRAIN HAS JUST EXPLODED!")
+      }
+      else{
+        this.columns = dataset.data[0];
+        for(const x of this.columns){
+          this.data[x] = [];
+        }
+        for(const x in dataset.data){
+          if(x == 0) continue;
+          for(const y in dataset.data[x]){
+            this.data[this.columns[y]].push(Number(dataset.data[x][y]))
+          }
+        }
+      }
+      this.loaded = true;
+    },
+    calculate(a, b){
+      return correlation.calc(this.data[a], this.data[b]);
+    },
+    gradientRedYellowGreen(value){
+      let total = 255;
+
+      let red = 255;
+      let green = 255;
+      let blue = 0;
+      if(value > 0){
+        //Reduce red
+        red -= (total*value)
+      }
+      else if(value < 0){
+        //Reduce green
+        green -= (total*Math.abs(value))
+      }
+      return `rgb(${red},${green},${blue})`;
+    }
   }
-}
+};
 </script>
 
 <style>
+@import './../node_modules/bulma/css/bulma.css';
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -24,5 +99,11 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+html{
+  background: #F5F5DC;
+}
+#value{
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px  1px 0 #000, 1px  1px 0 #000;
 }
 </style>
