@@ -4,7 +4,7 @@
     <br />
     <text-reader @load="parseCSV($event)"></text-reader>
     <br>
-    <table v-if="columns.length > 0 && loaded" class="table is-bordered" align="center">
+    <table v-if="columns.length > 0 && loaded && !error" class="table is-bordered" align="center">
       <thead>
         <tr>
           <th></th>
@@ -24,6 +24,7 @@
         </tr>
       </tfoot>
     </table>
+    <h1 v-if="error"><strong>MY BRAIN JUST EXPLODED!</strong></h1>
 	</div>
 </template>
 
@@ -43,29 +44,38 @@ export default {
     return {
       columns: [],
       data: {},
-      loaded: false
+      loaded: false,
+      error: false
     }
   },
   methods: {
     parseCSV(value){
-      this.loaded = false;
-      let dataset = papa.parse(value, {skipEmptyLines: true});
-      if(dataset.errors.length > 0){
-        console.log("MY BRAIN HAS JUST EXPLODED!")
-      }
-      else{
-        this.columns = dataset.data[0];
-        for(const x of this.columns){
-          this.data[x] = [];
+      try{
+        this.loaded = false;
+        this.error = false;
+        let dataset = papa.parse(value, {skipEmptyLines: true});
+        if(dataset.errors.length > 0){
+          console.log("MY BRAIN JUST EXPLODED!")
+          this.error = true;
         }
-        for(const x in dataset.data){
-          if(x == 0) continue;
-          for(const y in dataset.data[x]){
-            this.data[this.columns[y]].push(Number(dataset.data[x][y]))
+        else{
+          this.columns = dataset.data[0];
+          for(const x of this.columns){
+            this.data[x] = [];
+          }
+          for(const x in dataset.data){
+            if(x == 0) continue;
+            for(const y in dataset.data[x]){
+              this.data[this.columns[y]].push(Number(dataset.data[x][y]))
+            }
           }
         }
+        this.loaded = true;
       }
-      this.loaded = true;
+      catch(err){
+        console.log("MY BRAIN JUST EXPLODED!")
+        this.error = true;
+      }
     },
     calculate(a, b){
       return correlation.calc(this.data[a], this.data[b]);
