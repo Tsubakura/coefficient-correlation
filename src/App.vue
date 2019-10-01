@@ -66,7 +66,15 @@ export default {
           for(const x in dataset.data){
             if(x == 0) continue;
             for(const y in dataset.data[x]){
-              this.data[this.columns[y]].push(Number(dataset.data[x][y]))
+              let result = Number(dataset.data[x][y]);
+              if(isNaN(result)){
+                this.data[this.columns[y]] = "NaN";
+                continue;
+              }
+              else{
+                if(this.data[this.columns[y]] == "NaN") continue;
+                this.data[this.columns[y]].push(result)
+              }
             }
           }
         }
@@ -74,11 +82,12 @@ export default {
       }
       catch(err){
         console.log("MY BRAIN JUST EXPLODED!")
+        console.log(err);
         this.error = true;
       }
     },
     calculate(a, b){
-      return correlation.calc(this.data[a], this.data[b]);
+      return (this.data[a] == "NaN" || this.data[b] == "NaN") ? "N/A" : correlation.calc(this.data[a], this.data[b]);
     },
     gradientRedYellowGreen(value){
       let total = 255;
@@ -94,7 +103,7 @@ export default {
         //Reduce green
         green -= (total*Math.abs(value))
       }
-      return `rgb(${red},${green},${blue})`;
+      return (value == "N/A") ? `rgb(128,128,128)` :`rgb(${red},${green},${blue})`;
     }
   }
 };
