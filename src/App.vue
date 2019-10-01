@@ -87,7 +87,7 @@ export default {
       }
     },
     calculate(a, b){
-      return (this.data[a] == "NaN" || this.data[b] == "NaN") ? "N/A" : correlation.calc(this.data[a], this.data[b]);
+      return (this.data[a] == "NaN" || this.data[b] == "NaN") ? "N/A" : Math.floor(correlation.calc(this.data[a], this.data[b])*100)/100;
     },
     gradientRedYellowGreen(value){
       let total = 255;
