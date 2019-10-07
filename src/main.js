@@ -1,8 +1,15 @@
 import Vue from 'vue'
+import Vs from 'd3-vs'
 import Router from 'vue-router'
 
 import App from './App.vue'
 
+import CC from './CC.vue'
+import Kmeans from './Kmeans.vue'
+Vue.component('cc', CC)
+Vue.component('kmeans', Kmeans)
+
+Vue.use(Vs)
 Vue.use(Router)
 
 export default new Router({
